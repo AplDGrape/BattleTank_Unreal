@@ -2,6 +2,7 @@
 
 
 #include "TankController.h"
+#include "Engine/World.h"
 #include "DrawDebugHelpers.h"
 
 #define out
@@ -9,6 +10,11 @@
 void ATankController::BeginPlay()
 {
 	Super::BeginPlay();
+
+	//Hides the actor
+	if (this->actorCopy != nullptr) {
+		this->actorCopy->SetActorHiddenInGame(true);
+	}
 
 	UInputComponent* inputComponent = this->FindComponentByClass<UInputComponent>();
 	inputComponent->BindAction("Grab", EInputEvent::IE_Pressed, this, &ATankController::OnFire);
@@ -46,7 +52,17 @@ void ATankController::OnFire()
 	if (hasHit) {
 		UE_LOG(LogTemp, Display, TEXT("Crosshair screen location: %s"), *this->crosshairScreenLoc.ToString());
 
-		if (this->GetWorldPoint()) {
+		if (this->actorCopy != nullptr && this->GetWorldPoint()) {
+			FActorSpawnParameters spawnParams;
+			spawnParams.Template = this->actorCopy;
+			spawnParams.Owner = this->GetOwner();
+
+			AActor* myActor = this->GetWorld()->SpawnActor<AActor>(this->actorCopy->GetClass(), spawnParams);
+			myActor->AttachToActor(this->GetOwner(), FAttachmentTransformRules::KeepRelativeTransform); //works but does not show hierarchy in outliner during gameplay
+			myActor->SetActorHiddenInGame(false);
+			myActor->SetActorLocation(this->latestWorldPoint);
+			myActor->SetActorRotation(this->actorCopy->GetActorRotation());
+
 			UE_LOG(LogTemp, Display, TEXT("Firing on: %s"), *this->latestWorldPoint.ToString());
 		}
 	
