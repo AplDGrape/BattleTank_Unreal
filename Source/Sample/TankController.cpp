@@ -4,6 +4,7 @@
 #include "TankController.h"
 #include "Engine/World.h"
 #include "DrawDebugHelpers.h"
+#include "TankPawn.h"
 
 #define out
 
@@ -18,6 +19,8 @@ void ATankController::BeginPlay()
 
 	UInputComponent* inputComponent = this->FindComponentByClass<UInputComponent>();
 	inputComponent->BindAction("Grab", EInputEvent::IE_Pressed, this, &ATankController::OnFire);
+	inputComponent->BindAxis("MoveX", this, &ATankController::OnMove);
+	inputComponent->BindAxis("MoveY", this, &ATankController::OnSideways);
 }
 
 void ATankController::Tick(float deltaTime)
@@ -70,4 +73,14 @@ void ATankController::OnFire()
 	else {
 		UE_LOG(LogTemp, Display, TEXT("No available target!"));
 	}
+}
+
+void ATankController::OnMove(float axis)
+{
+	this->GetPawn<ATankPawn>()->Move(axis);
+}
+
+void ATankController::OnSideways(float axis)
+{
+	this->GetPawn<ATankPawn>()->Sideways(axis);
 }
